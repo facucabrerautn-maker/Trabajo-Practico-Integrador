@@ -1,6 +1,10 @@
 import csv
 import os
 import requests
+from rich.console import Console  # Importa la clase Console
+from rich.table import Table      # Importa la clase Table para el formato
+
+console = Console()
 
 NOMBRE_ARCHIVO = 'paises.csv'
 URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region'
@@ -21,10 +25,9 @@ def descargar_y_crear_csv():
             for pais in datos:
                 nombre = pais.get('name', {}).get('common', 'N/A')
                 poblacion = pais.get('population', 0)
-                superficie = int(pais.get('area', 0) or 0) # Usa 0 si 'area' es None
+                superficie = int(pais.get('area', 0) or 0) 
                 continente = pais.get('region', 'N/A')
                 
-                # Aplica el filtro: nombre, continente y superficie deben ser válidos
                 if nombre != 'N/A' and continente != 'N/A' and superficie > 0:
                     writer.writerow([nombre, poblacion, superficie, continente])
                     filas_escritas += 1
@@ -79,16 +82,29 @@ def cargar_datos():
 
 def mostrar_paises(lista_paises):
     if not lista_paises:
-        print("No se encontraron países que coincidan con los criterios.")
+        console.print("[bold red]❌ No se encontraron países que coincidan con los criterios.[/bold red]")
         return
     
-    print("\n--- Resultados ---")
-    print(f"{'Nombre':<35} | {'Continente':<15} | {'Población':>15} | {'Superficie (km²)':>18}")
-    print("-" * 88)
+    tabla = Table(title="--- Resultados de Países ---", show_lines=True, header_style="bold cyan")
+    
+    tabla.add_column("Nombre", style="dim", width=30)
+    tabla.add_column("Continente", justify="left")
+    tabla.add_column("Población", justify="right", style="green")
+    tabla.add_column("Superficie (km²)", justify="right", style="yellow")
+    
     for pais in lista_paises:
-        print(f"{pais['nombre']:<35} | {pais['continente']:<15} | {pais['poblacion']:>15,} | {pais['superficie']:>18,}")
-    print("-" * 88)
-    print(f"Total: {len(lista_paises)} países.")
+        poblacion_str = f"{pais['poblacion']:,}"
+        superficie_str = f"{pais['superficie']:,}"
+        
+        tabla.add_row(
+            pais['nombre'],
+            pais['continente'],
+            poblacion_str,
+            superficie_str
+        )
+
+    console.print(tabla)
+    console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
 
 def buscar_por_nombre(paises):
     nombre = input("Ingrese el nombre (o parte del nombre) del país: ").lower().strip()
@@ -208,11 +224,11 @@ def mostrar_estadisticas(paises):
         print(f"- {continente}: {cantidad} países")
 
 def mostrar_menu():
-    print("\n--- Gestión de Datos de Países (UTN TPI) ---")
-    print("1. Buscar país por nombre")
-    print("2. Filtrar por continente")
-    print("3. Filtrar por rango de población")
-    print("4. Filtrar por rango de superficie")
-    print("5. Ordenar países")
-    print("6. Mostrar estadísticas")
-    print("0. Salir")
+    console.print("\n[bold blue]🌐 --- Gestión de Datos de Países ---[/bold blue]")
+    console.print("1. [bold yellow]🔍 Buscar país por nombre[/bold yellow]")
+    console.print("2. [bold yellow]🗺️  Filtrar por continente[/bold yellow]")
+    console.print("3. [bold yellow]👤 Filtrar por rango de población[/bold yellow]")
+    console.print("4. [bold yellow]📐 Filtrar por rango de superficie[/bold yellow]")
+    console.print("5. [bold yellow]🔃 Ordenar países[/bold yellow]")
+    console.print("6. [bold yellow]📊 Mostrar estadísticas[/bold yellow]")
+    console.print("0. [bold red]👋 Salir[/bold red]")
