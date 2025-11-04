@@ -278,4 +278,4 @@ def mostrar_menu():
     console.print("4. [bold green]🌲 --- Filtrar por rango de superficie --- 🌲[/bold green]")
     console.print("5. [bold magenta] :up_arrow: --- Ordenar países --- :down_arrow:[/bold magenta]")
     console.print("6. [bold white]📊 --- Mostrar estadísticas --- 📊[/bold white]")
-    console.print("0. [bold red] 👋  --- Salir ---👋[/bold red]")
+    console.print("0. [bold red] 👋 --- Salir ---👋[/bold red]")
