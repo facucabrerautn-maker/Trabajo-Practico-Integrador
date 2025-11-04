@@ -1,17 +1,18 @@
 import csv
 import os
 import requests
-from rich.console import Console  
-from rich.table import Table     
-from InquirerPy import prompt     
+import sys
+from rich.console import Console
+from rich.table import Table
 
+# Definimos console aquí para que sea importado y usado en main.py
 console = Console()
 
 NOMBRE_ARCHIVO = 'paises.csv'
 URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region'
 
 def descargar_y_crear_csv():
-    print("Descargando datos desde la API de restcountries.com...")
+    console.print("[bold blue]:cloud: Descargando datos desde la API de restcountries.com...[/bold blue]")
     try:
         respuesta = requests.get(URL_API)
         respuesta.raise_for_status()
@@ -26,7 +27,8 @@ def descargar_y_crear_csv():
             for pais in datos:
                 nombre = pais.get('name', {}).get('common', 'N/A')
                 poblacion = pais.get('population', 0)
-                superficie = int(pais.get('area', 0) or 0) 
+                # Usa 0 si 'area' es None
+                superficie = int(pais.get('area', 0) or 0)
                 continente = pais.get('region', 'N/A')
                 
                 if nombre != 'N/A' and continente != 'N/A' and superficie > 0:
@@ -34,26 +36,26 @@ def descargar_y_crear_csv():
                     filas_escritas += 1
         
         if filas_escritas == 0:
-            print("Error: La descarga fue exitosa, pero no se escribió ningún país. Verifique los datos de la API.")
+            console.print("[bold red]Error: La descarga fue exitosa, pero no se escribió ningún país. Verifique los datos de la API.[/bold red]")
             return False
             
-        print(f"Archivo '{NOMBRE_ARCHIVO}' creado exitosamente con {filas_escritas} países.")
+        console.print(f"[bold green]:white_check_mark: Archivo '{NOMBRE_ARCHIVO}' creado exitosamente con {filas_escritas} países.[/bold green]")
         
     except requests.exceptions.RequestException as e:
-        print(f"Error al conectar con la API o la API devolvió un error: {e}")
+        console.print(f"[bold red]Error al conectar con la API o la API devolvió un error: {e}[/bold red]")
         return False
     except IOError as e:
-        print(f"Error al escribir el archivo CSV: {e}")
+        console.print(f"[bold red]Error al escribir el archivo CSV: {e}[/bold red]")
         return False
     except Exception as e:
-        print(f"Error inesperado durante la descarga/creación: {e}")
+        console.print(f"[bold red]Error inesperado durante la descarga/creación: {e}[/bold red]")
         return False
         
     return True
 
 def cargar_datos():
     if not os.path.exists(NOMBRE_ARCHIVO):
-        print(f"El archivo '{NOMBRE_ARCHIVO}' no existe.")
+        console.print(f"[bold yellow]El archivo '{NOMBRE_ARCHIVO}' no existe. Iniciando descarga.[/bold yellow]")
         if not descargar_y_crear_csv():
             return []
 
@@ -70,25 +72,25 @@ def cargar_datos():
                 except (ValueError, TypeError):
                     filas_con_error += 1
             if filas_con_error > 0:
-                 print(f"Advertencia: Se omitieron {filas_con_error} filas con formato incorrecto en el CSV.")
+                 console.print(f"[bold yellow]Advertencia: Se omitieron {filas_con_error} filas con formato incorrecto en el CSV.[/bold yellow]")
                  
     except FileNotFoundError:
-        print("Error: No se pudo encontrar el archivo CSV después de intentar crearlo.")
+        console.print("[bold red]Error: No se pudo encontrar el archivo CSV después de intentar crearlo.[/bold red]")
         return []
     except Exception as e:
-        print(f"Error inesperado al leer el CSV: {e}")
+        console.print(f"[bold red]Error inesperado al leer el CSV: {e}[/bold red]")
         return []
         
     return paises
 
 def mostrar_paises(lista_paises):
     if not lista_paises:
-        console.print("[bold red]❌ No se encontraron países que coincidan con los criterios.[/bold red]")
+        console.print("[bold red]:x: No se encontraron países que coincidan con los criterios.[/bold red]")
         return
     
     tabla = Table(title="--- Resultados de Países ---", show_lines=True, header_style="bold cyan")
     
-    tabla.add_column("Nombre", style="dim", width=30)
+    tabla.add_column("Nombre", style="magenta", width=30)
     tabla.add_column("Continente", justify="left")
     tabla.add_column("Población", justify="right", style="green")
     tabla.add_column("Superficie (km²)", justify="right", style="yellow")
@@ -110,61 +112,82 @@ def mostrar_paises(lista_paises):
 def buscar_por_nombre(paises):
     nombre = input("Ingrese el nombre (o parte del nombre) del país: ").lower().strip()
     if not nombre:
-        print("Error: La búsqueda no puede estar vacía.")
+        console.print("[bold red]Error: La búsqueda no puede estar vacía.[/bold red]")
         return
     resultados = [pais for pais in paises if nombre in pais['nombre'].lower()]
     mostrar_paises(resultados)
 
 def validar_entero(mensaje):
     while True:
-        valor_str = input(mensaje).strip()
-        if not valor_str:
-            print("Error: El valor no puede estar vacío.")
-            continue
         try:
+            valor_str = input(mensaje).strip()
+            
+            if not valor_str:
+                console.print("[bold red]Error: El valor no puede estar vacío. Vuelva a intentar.[/bold red]")
+                continue
+            
             return int(valor_str)
+        
         except ValueError:
-            print("Error: Por favor, ingrese un número entero válido.")
+            console.print("[bold red]Error: Por favor, ingrese un número entero válido.[/bold red]")
+            
+        except (EOFError, KeyboardInterrupt):
+            # Captura Ctrl+D o Ctrl+C
+            console.print("\n[bold yellow]Operación cancelada. Regresando al menú principal.[/bold yellow]")
+            return None
 
 def filtrar_por_continente(paises):
-    continente_buscado = input("Ingrese el nombre del continente: ").lower().strip()
+    continente_buscado = input("Ingrese el nombre del continente: ").strip()
+    
     if not continente_buscado:
-        print("Error: El nombre del continente no puede estar vacío.")
+        console.print("[bold red]Error: El nombre del continente no puede estar vacío.[/bold red]")
         return
     
-    continentes_disponibles = sorted(list(set(p['continente'].lower() for p in paises)))
-    print(f"Continentes disponibles: {', '.join(c.capitalize() for c in continentes_disponibles)}")
+    continentes_disponibles = sorted(list(set(p['continente'] for p in paises)))
+    console.print(f"[bold magenta]Continentes disponibles:[/bold magenta] {', '.join(c for c in continentes_disponibles)}")
 
-    resultados = [pais for pais in paises if continente_buscado == pais['continente'].lower()]
+    resultados = [pais for pais in paises if continente_buscado.lower() == pais['continente'].lower()]
     mostrar_paises(resultados)
 
 def filtrar_por_poblacion(paises):
+    console.print("[bold yellow]Filtro por Rango de Población:[/bold yellow]")
     min_pob = validar_entero("Ingrese la población mínima: ")
+    
+    if min_pob is None: return
+    
     max_pob = validar_entero("Ingrese la población máxima: ")
+
+    if max_pob is None: return
     
     if min_pob > max_pob:
-        print("Error: La población mínima no puede ser mayor que la máxima.")
+        console.print("[bold red]Error: La población mínima no puede ser mayor que la máxima.[/bold red]")
         return
 
     resultados = [pais for pais in paises if min_pob <= pais['poblacion'] <= max_pob]
     mostrar_paises(resultados)
 
 def filtrar_por_superficie(paises):
+    console.print("[bold yellow]Filtro por Rango de Superficie (km²):[/bold yellow]")
     min_sup = validar_entero("Ingrese la superficie mínima (km²): ")
+    
+    if min_sup is None: return
+    
     max_sup = validar_entero("Ingrese la superficie máxima (km²): ")
 
+    if max_sup is None: return
+
     if min_sup > max_sup:
-        print("Error: La superficie mínima no puede ser mayor que la máxima.")
+        console.print("[bold red]Error: La superficie mínima no puede ser mayor que la máxima.[/bold red]")
         return
 
     resultados = [pais for pais in paises if min_sup <= pais['superficie'] <= max_sup]
     mostrar_paises(resultados)
 
 def ordenar_paises(paises):
-    print("Seleccione el criterio de ordenamiento:")
-    print("1. Nombre")
-    print("2. Población")
-    print("3. Superficie")
+    console.print("Seleccione el criterio de ordenamiento:")
+    console.print("1. Nombre")
+    console.print("2. Población")
+    console.print("3. Superficie")
     criterio_op = input("Opción (1-3): ").strip()
     
     criterios = {
@@ -174,14 +197,14 @@ def ordenar_paises(paises):
     }
     
     if criterio_op not in criterios:
-        print("Error: Opción inválida.")
+        console.print("[bold red]Error: Opción inválida.[/bold red]")
         return
 
     criterio = criterios[criterio_op]
     
     orden = input("Seleccione el orden (ASC / DESC): ").upper().strip()
     if orden not in ['ASC', 'DESC']:
-        print("Error: Orden inválido. Se usará ASC por defecto.")
+        console.print("[bold yellow]Advertencia: Orden inválido. Se usará ASC por defecto.[/bold yellow]")
         orden = 'ASC'
         
     descendente = (orden == 'DESC')
@@ -192,61 +215,42 @@ def ordenar_paises(paises):
         key_sort = lambda pais: pais[criterio]
         
     resultados_ordenados = sorted(paises, key=key_sort, reverse=descendente)
+    console.print(f"\n[bold magenta]Ordenado por {criterio.capitalize()} ({orden})[/bold magenta]")
     mostrar_paises(resultados_ordenados)
 
 def mostrar_estadisticas(paises):
     if not paises:
-        print("No hay datos para calcular estadísticas.")
+        console.print("[bold red]No hay datos para calcular estadísticas.[/bold red]")
         return
 
     total_paises = len(paises)
     total_poblacion = sum(p['poblacion'] for p in paises)
-    total_superficie = sum(p['superficie'] for p in paises)
-    
+        
     pais_max_pob = max(paises, key=lambda p: p['poblacion'])
     pais_min_pob = min(paises, key=lambda p: p['poblacion'])
     
     prom_poblacion = total_poblacion / total_paises if total_paises > 0 else 0
-    prom_superficie = total_superficie / total_paises if total_paises > 0 else 0
     
     paises_por_continente = {}
     for pais in paises:
         continente = pais['continente']
         paises_por_continente[continente] = paises_por_continente.get(continente, 0) + 1
         
-    print("\n--- Estadísticas Globales ---")
-    print(f"País con mayor población: {pais_max_pob['nombre']} ({pais_max_pob['poblacion']:,})")
-    print(f"País con menor población: {pais_min_pob['nombre']} ({pais_min_pob['poblacion']:,})")
-    print(f"Población promedio: {prom_poblacion:,.2f}")
-    print(f"Superficie promedio: {prom_superficie:,.2f} km²")
+    console.print("\n[bold blue]📈 --- Estadísticas Globales ---[/bold blue]")
+    console.print(f"País con mayor población: [green]{pais_max_pob['nombre']} ({pais_max_pob['poblacion']:,})[/green]")
+    console.print(f"País con menor población: [red]{pais_min_pob['nombre']} ({pais_min_pob['poblacion']:,})[/red]")
+    console.print(f"Población promedio: {prom_poblacion:,.2f}")
     
-    print("\nCantidad de países por continente:")
+    console.print("\n[bold yellow]Cantidad de países por continente:[/bold yellow]")
     for continente, cantidad in sorted(paises_por_continente.items()):
-        print(f"- {continente}: {cantidad} países")
+        console.print(f"- {continente}: [magenta]{cantidad} países[/magenta]")
 
-def seleccionar_opcion():
-    # Las opciones ahora se presentan con texto descriptivo y un 'value' numérico para el backend
-    questions = [
-        {
-            "type": "list",
-            "message": "🌐 Seleccione una opción para gestionar los datos de países:",
-            "choices": [
-                {"name": "1. 🔍 Buscar país por nombre", "value": "1"},
-                {"name": "2. 🗺️  Filtrar por continente", "value": "2"},
-                {"name": "3. 🧑‍🤝‍🧑 Filtrar por rango de población", "value": "3"},
-                {"name": "4. 📐 Filtrar por rango de superficie", "value": "4"},
-                {"name": "5. ⬆️⬇️ Ordenar países", "value": "5"},
-                {"name": "6. 📊 Mostrar estadísticas", "value": "6"},
-                {"name": "0. 👋 Salir del programa", "value": "0"},
-            ],
-            "name": "opcion",
-            # Estilo con Rich si quieres, o solo InquirerPy
-            "instruction": "(Use flechas y Enter para seleccionar)" 
-        }
-    ]
-    
-    # Ejecuta el prompt y almacena el resultado
-    result = prompt(questions)
-    
-    # Devuelve el valor ('1', '2', '0', etc.) seleccionado.
-    return result['opcion'] if result and 'opcion' in result else '0'
+def mostrar_menu():
+    console.print("\n[bold blue]🌐--- Gestión de Datos de Países ---🌐[/bold blue]")
+    console.print("1. [bold gray]🔍 --- Buscar país por nombre --- 🔍[/bold gray]")
+    console.print("2. [bold cyan]🌎 --- Filtrar por continente --- 🌍[/bold cyan]")
+    console.print("3. [bold yellow]👨 --- Filtrar por rango de población --- 👩[/bold yellow]")
+    console.print("4. [bold green]🌲 --- Filtrar por rango de superficie --- 🌲[/bold green]")
+    console.print("5. [bold magenta] :up_arrow: --- Ordenar países --- :down_arrow:[/bold magenta]")
+    console.print("6. [bold white]📊 --- Mostrar estadísticas --- 📊[/bold white]")
+    console.print("0. [bold red] 👋  --- Salir ---👋[/bold red]")
