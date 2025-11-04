@@ -27,7 +27,6 @@ def descargar_y_crear_csv():
             for pais in datos:
                 nombre = pais.get('name', {}).get('common', 'N/A')
                 poblacion = pais.get('population', 0)
-                # Usa 0 si 'area' es None
                 superficie = int(pais.get('area', 0) or 0)
                 continente = pais.get('region', 'N/A')
                 
