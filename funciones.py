@@ -12,6 +12,8 @@ def descargar_y_crear_csv():
         respuesta.raise_for_status()
         datos = respuesta.json()
         
+        filas_escritas = 0
+        
         with open(NOMBRE_ARCHIVO, 'w', newline='', encoding='utf-8') as archivo:
             writer = csv.writer(archivo)
             writer.writerow(['nombre', 'poblacion', 'superficie', 'continente'])
@@ -19,20 +21,30 @@ def descargar_y_crear_csv():
             for pais in datos:
                 nombre = pais.get('name', {}).get('common', 'N/A')
                 poblacion = pais.get('population', 0)
-                superficie = int(pais.get('area', 0))
+                superficie = int(pais.get('area', 0) or 0) # Usa 0 si 'area' es None
                 continente = pais.get('region', 'N/A')
                 
+                # Aplica el filtro: nombre, continente y superficie deben ser válidos
                 if nombre != 'N/A' and continente != 'N/A' and superficie > 0:
                     writer.writerow([nombre, poblacion, superficie, continente])
+                    filas_escritas += 1
         
-        print(f"Archivo '{NOMBRE_ARCHIVO}' creado exitosamente.")
+        if filas_escritas == 0:
+            print("Error: La descarga fue exitosa, pero no se escribió ningún país. Verifique los datos de la API.")
+            return False
+            
+        print(f"Archivo '{NOMBRE_ARCHIVO}' creado exitosamente con {filas_escritas} países.")
         
     except requests.exceptions.RequestException as e:
-        print(f"Error al conectar con la API: {e}")
+        print(f"Error al conectar con la API o la API devolvió un error: {e}")
         return False
     except IOError as e:
         print(f"Error al escribir el archivo CSV: {e}")
         return False
+    except Exception as e:
+        print(f"Error inesperado durante la descarga/creación: {e}")
+        return False
+        
     return True
 
 def cargar_datos():
