@@ -4,8 +4,8 @@ import requests
 import sys
 from rich.console import Console
 from rich.table import Table
+from thefuzz import fuzz, process
 
-# Definimos console aquí para que sea importado y usado en main.py
 console = Console()
 
 NOMBRE_ARCHIVO = 'paises.csv'
@@ -110,11 +110,38 @@ def mostrar_paises(lista_paises):
     console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
 
 def buscar_por_nombre(paises):
-    nombre = input("Ingrese el nombre (o parte del nombre) del país: ").lower().strip()
-    if not nombre:
+    nombre_buscado = input("Ingrese el nombre (o parte del nombre) del país: ").strip()
+    
+    if not nombre_buscado:
         console.print("[bold red]Error: La búsqueda no puede estar vacía.[/bold red]")
         return
-    resultados = [pais for pais in paises if nombre in pais['nombre'].lower()]
+        
+    nombres_paises = [pais['nombre'] for pais in paises]
+    
+    coincidencias_fuzz = process.extract(
+        query=nombre_buscado, 
+        choices=nombres_paises, 
+        scorer=fuzz.partial_ratio, 
+        limit=10 
+    )
+    
+    UMBRAL_PUNTAJE = 85
+    resultados = []
+    
+    for nombre_coincidente, puntaje in coincidencias_fuzz: 
+        if puntaje >= UMBRAL_PUNTAJE: 
+            pais_encontrado = next(
+                (p for p in paises if p['nombre'] == nombre_coincidente), 
+                None
+            )
+            
+            if pais_encontrado:
+                 resultados.append(pais_encontrado)
+
+    if not resultados:
+        console.print(f"[bold red]:x: No se encontraron coincidencias para '{nombre_buscado}' con un puntaje mínimo de {UMBRAL_PUNTAJE}.[/bold red]")
+        return
+        
     mostrar_paises(resultados)
 
 def validar_entero(mensaje):
@@ -132,7 +159,6 @@ def validar_entero(mensaje):
             console.print("[bold red]Error: Por favor, ingrese un número entero válido.[/bold red]")
             
         except (EOFError, KeyboardInterrupt):
-            # Captura Ctrl+D o Ctrl+C
             console.print("\n[bold yellow]Operación cancelada. Regresando al menú principal.[/bold yellow]")
             return None
 
