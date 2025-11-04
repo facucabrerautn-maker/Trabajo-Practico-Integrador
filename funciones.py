@@ -1,8 +1,9 @@
 import csv
 import os
 import requests
-from rich.console import Console  # Importa la clase Console
-from rich.table import Table      # Importa la clase Table para el formato
+from rich.console import Console  
+from rich.table import Table     
+from InquirerPy import prompt     
 
 console = Console()
 
@@ -223,12 +224,29 @@ def mostrar_estadisticas(paises):
     for continente, cantidad in sorted(paises_por_continente.items()):
         print(f"- {continente}: {cantidad} países")
 
-def mostrar_menu():
-    console.print("\n[bold blue]🌐 --- Gestión de Datos de Países ---[/bold blue]")
-    console.print("1. [bold yellow]🔍 Buscar país por nombre[/bold yellow]")
-    console.print("2. [bold yellow]🗺️  Filtrar por continente[/bold yellow]")
-    console.print("3. [bold yellow]👤 Filtrar por rango de población[/bold yellow]")
-    console.print("4. [bold yellow]📐 Filtrar por rango de superficie[/bold yellow]")
-    console.print("5. [bold yellow]🔃 Ordenar países[/bold yellow]")
-    console.print("6. [bold yellow]📊 Mostrar estadísticas[/bold yellow]")
-    console.print("0. [bold red]👋 Salir[/bold red]")
+def seleccionar_opcion():
+    # Las opciones ahora se presentan con texto descriptivo y un 'value' numérico para el backend
+    questions = [
+        {
+            "type": "list",
+            "message": "🌐 Seleccione una opción para gestionar los datos de países:",
+            "choices": [
+                {"name": "1. 🔍 Buscar país por nombre", "value": "1"},
+                {"name": "2. 🗺️  Filtrar por continente", "value": "2"},
+                {"name": "3. 🧑‍🤝‍🧑 Filtrar por rango de población", "value": "3"},
+                {"name": "4. 📐 Filtrar por rango de superficie", "value": "4"},
+                {"name": "5. ⬆️⬇️ Ordenar países", "value": "5"},
+                {"name": "6. 📊 Mostrar estadísticas", "value": "6"},
+                {"name": "0. 👋 Salir del programa", "value": "0"},
+            ],
+            "name": "opcion",
+            # Estilo con Rich si quieres, o solo InquirerPy
+            "instruction": "(Use flechas y Enter para seleccionar)" 
+        }
+    ]
+    
+    # Ejecuta el prompt y almacena el resultado
+    result = prompt(questions)
+    
+    # Devuelve el valor ('1', '2', '0', etc.) seleccionado.
+    return result['opcion'] if result and 'opcion' in result else '0'
