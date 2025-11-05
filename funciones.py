@@ -14,15 +14,24 @@ URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region
 TAMANO_PAGINA = 10
 
 def limpiar_consola():
-    # Para sistemas Unix (Linux/macOS)
     if os.name == 'posix':
         os.system('clear')
-    # Para Windows
     elif os.name == 'nt':
         os.system('cls')
 
-def descargar_y_crear_csv():
+def pausa_para_continuar():
+    console.print("\n[bold magenta]Presione Enter para volver al menú principal...[/bold magenta]", end="")
+    
+    console.file.flush()
+    
+    try:
+        input()
+    except KeyboardInterrupt:
+        pass
+
     limpiar_consola()
+
+def descargar_y_crear_csv():
     console.print("[bold blue]:cloud: Descargando datos desde la API de restcountries.com...[/bold blue]")
     try:
         respuesta = requests.get(URL_API)
@@ -63,8 +72,9 @@ def descargar_y_crear_csv():
         
     return True
 
+    pausa_para_continuar()
+
 def cargar_datos():
-    limpiar_consola()
 
     if not os.path.exists(NOMBRE_ARCHIVO):
         console.print(f"[bold yellow]El archivo '{NOMBRE_ARCHIVO}' no existe. Iniciando descarga.[/bold yellow]")
@@ -92,8 +102,9 @@ def cargar_datos():
         
     return paises
 
+    pausa_para_continuar()
+
 def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
-    limpiar_consola()
 
     if not lista_paises:
         console.print("[bold red]:x: No se encontraron países que coincidan con los criterios.[/bold red]")
@@ -124,9 +135,10 @@ def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
     else:
         console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
 
+    pausa_para_continuar()
+    console.file.flush()
 
 def buscar_por_nombre(paises):
-    limpiar_consola()
 
     console.print("[bold yellow]🔎 Ingrese el nombre (o parte del nombre) del país:[/bold yellow] ", end="")
     nombre_buscado = input().strip()
@@ -162,8 +174,9 @@ def buscar_por_nombre(paises):
         
     mostrar_paises(resultados)
 
+    pausa_para_continuar()
+
 def validar_entero(mensaje):
-    limpiar_consola()
 
     while True:
         try:
@@ -182,8 +195,9 @@ def validar_entero(mensaje):
             console.print("\n[bold yellow]Operación cancelada.[/bold yellow]")
             return None
 
+    pausa_para_continuar()
+
 def filtrar_por_continente(paises):
-    limpiar_consola()
 
     console.print("[bold yellow]🗺️  Ingrese el nombre del continente:[/bold yellow] ", end="")
     continente_buscado = input().strip()
@@ -198,8 +212,9 @@ def filtrar_por_continente(paises):
     resultados = [pais for pais in paises if continente_buscado.lower() == pais['continente'].lower()]
     mostrar_paises(resultados)
 
+    pausa_para_continuar()
+
 def filtrar_por_poblacion(paises):
-    limpiar_consola()
 
     console.print("\n[bold cyan]--- Filtro por Rango de Población ---[/bold cyan]")
     min_pob = validar_entero("Ingrese la población mínima:")
@@ -215,8 +230,9 @@ def filtrar_por_poblacion(paises):
     resultados = [pais for pais in paises if min_pob <= pais['poblacion'] <= max_pob]
     mostrar_paises(resultados)
 
+    pausa_para_continuar()
+
 def filtrar_por_superficie(paises):
-    limpiar_consola()
 
     console.print("\n[bold cyan]--- Filtro por Rango de Superficie (km²) ---[/bold cyan]")
     min_sup = validar_entero("Ingrese la superficie mínima (km²):")
@@ -231,6 +247,8 @@ def filtrar_por_superficie(paises):
 
     resultados = [pais for pais in paises if min_sup <= pais['superficie'] <= max_sup]
     mostrar_paises(resultados)
+
+    pausa_para_continuar()
 
 def ordenar_paises(paises):
     limpiar_consola()
@@ -316,7 +334,6 @@ def ordenar_paises(paises):
             console.print("[bold red]Opción de navegación inválida. Intente A, S o V.[/bold red]")
 
 def mostrar_estadisticas(paises):
-    limpiar_consola()
 
     if not paises:
         console.print("[bold red]No hay datos para calcular estadísticas.[/bold red]")
@@ -344,6 +361,8 @@ def mostrar_estadisticas(paises):
     for continente, cantidad in sorted(paises_por_continente.items()):
         console.print(f"- {continente}: [magenta]{cantidad} países[/magenta]")
 
+    pausa_para_continuar()
+    
 def mostrar_menu():
     limpiar_consola()
 
