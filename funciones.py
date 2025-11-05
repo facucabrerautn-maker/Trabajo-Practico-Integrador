@@ -10,8 +10,18 @@ from thefuzz import fuzz, process
 console = Console()
 
 NOMBRE_ARCHIVO = 'paises.csv'
-URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region'
+URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region,translations'
 TAMANO_PAGINA = 10
+MAPEO_CONTINENTES = {
+    'Asia': 'Asia',
+    'Europe': 'Europa',
+    'Americas': 'America',
+    'Africa': 'Africa',
+    'Oceania': 'Oceania',
+    'Antarctic': 'Antartida',
+    '': 'Sin Continente', # Para manejar datos vacíos
+    'N/A': 'Sin Continente'
+}
 
 def limpiar_consola():
     if os.name == 'posix':
@@ -46,9 +56,16 @@ def descargar_y_crear_csv():
             
             for pais in datos:
                 nombre = pais.get('name', {}).get('common', 'N/A')
+                traducciones = pais.get('translations', {})
+                nombre_espanol = traducciones.get('spa', {}).get('common')
+                if nombre_espanol:
+                    nombre = nombre_espanol
+                else:
+                    nombre = pais.get('name', {}).get('common', 'N/A')
                 poblacion = pais.get('population', 0)
                 superficie = int(pais.get('area', 0) or 0)
-                continente = pais.get('region', 'N/A')
+                region_api = pais.get('region', 'N/A')
+                continente = MAPEO_CONTINENTES.get(region_api, region_api)
                 
                 if nombre != 'N/A' and continente != 'N/A' and superficie > 0:
                     writer.writerow([nombre, poblacion, superficie, continente])
@@ -71,8 +88,6 @@ def descargar_y_crear_csv():
         return False
         
     return True
-
-    pausa_para_continuar()
 
 def cargar_datos():
 
