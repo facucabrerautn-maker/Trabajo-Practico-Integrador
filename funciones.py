@@ -2,6 +2,7 @@ import csv
 import os
 import requests
 import sys
+import math
 from rich.console import Console
 from rich.table import Table
 from thefuzz import fuzz, process
@@ -10,8 +11,18 @@ console = Console()
 
 NOMBRE_ARCHIVO = 'paises.csv'
 URL_API = 'https://restcountries.com/v3.1/all?fields=name,population,area,region'
+TAMANO_PAGINA = 10
+
+def limpiar_consola():
+    # Para sistemas Unix (Linux/macOS)
+    if os.name == 'posix':
+        os.system('clear')
+    # Para Windows
+    elif os.name == 'nt':
+        os.system('cls')
 
 def descargar_y_crear_csv():
+    limpiar_consola()
     console.print("[bold blue]:cloud: Descargando datos desde la API de restcountries.com...[/bold blue]")
     try:
         respuesta = requests.get(URL_API)
@@ -35,24 +46,26 @@ def descargar_y_crear_csv():
                     filas_escritas += 1
         
         if filas_escritas == 0:
-            console.print("[bold red]Error: La descarga fue exitosa, pero no se escribió ningún país. Verifique los datos de la API.[/bold red]")
+            console.print("[bold red]Error: La descarga fue exitosa, pero no se escribió ningún país.[/bold red]")
             return False
             
         console.print(f"[bold green]:white_check_mark: Archivo '{NOMBRE_ARCHIVO}' creado exitosamente con {filas_escritas} países.[/bold green]")
         
     except requests.exceptions.RequestException as e:
-        console.print(f"[bold red]Error al conectar con la API o la API devolvió un error: {e}[/bold red]")
+        console.print(f"[bold red]Error al conectar con la API: {e}[/bold red]")
         return False
     except IOError as e:
         console.print(f"[bold red]Error al escribir el archivo CSV: {e}[/bold red]")
         return False
     except Exception as e:
-        console.print(f"[bold red]Error inesperado durante la descarga/creación: {e}[/bold red]")
+        console.print(f"[bold red]Error inesperado durante la descarga: {e}[/bold red]")
         return False
         
     return True
 
 def cargar_datos():
+    limpiar_consola()
+
     if not os.path.exists(NOMBRE_ARCHIVO):
         console.print(f"[bold yellow]El archivo '{NOMBRE_ARCHIVO}' no existe. Iniciando descarga.[/bold yellow]")
         if not descargar_y_crear_csv():
@@ -71,25 +84,24 @@ def cargar_datos():
                 except (ValueError, TypeError):
                     filas_con_error += 1
             if filas_con_error > 0:
-                 console.print(f"[bold yellow]Advertencia: Se omitieron {filas_con_error} filas con formato incorrecto en el CSV.[/bold yellow]")
+                 console.print(f"[bold yellow]Advertencia: Se omitieron {filas_con_error} filas con formato incorrecto.[/bold yellow]")
                  
-    except FileNotFoundError:
-        console.print("[bold red]Error: No se pudo encontrar el archivo CSV después de intentar crearlo.[/bold red]")
-        return []
     except Exception as e:
         console.print(f"[bold red]Error inesperado al leer el CSV: {e}[/bold red]")
         return []
         
     return paises
 
-def mostrar_paises(lista_paises):
+def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
+    limpiar_consola()
+
     if not lista_paises:
         console.print("[bold red]:x: No se encontraron países que coincidan con los criterios.[/bold red]")
         return
     
     tabla = Table(title="--- Resultados de Países ---", show_lines=True, header_style="bold cyan")
     
-    tabla.add_column("Nombre", style="magenta", width=30)
+    tabla.add_column("Nombre", style="dim", width=30)
     tabla.add_column("Continente", justify="left")
     tabla.add_column("Población", justify="right", style="green")
     tabla.add_column("Superficie (km²)", justify="right", style="yellow")
@@ -106,10 +118,18 @@ def mostrar_paises(lista_paises):
         )
 
     console.print(tabla)
-    console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
+    
+    if pagina_actual and total_paginas:
+        console.print(f"\n[bold cyan]Página {pagina_actual} de {total_paginas}[/bold cyan] (Total: {len(lista_paises)} países en esta página)")
+    else:
+        console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
+
 
 def buscar_por_nombre(paises):
-    nombre_buscado = input("Ingrese el nombre (o parte del nombre) del país: ").strip()
+    limpiar_consola()
+
+    console.print("[bold yellow]🔎 Ingrese el nombre (o parte del nombre) del país:[/bold yellow] ", end="")
+    nombre_buscado = input().strip()
     
     if not nombre_buscado:
         console.print("[bold red]Error: La búsqueda no puede estar vacía.[/bold red]")
@@ -120,7 +140,7 @@ def buscar_por_nombre(paises):
     coincidencias_fuzz = process.extract(
         query=nombre_buscado, 
         choices=nombres_paises, 
-        scorer=fuzz.partial_ratio, 
+        scorer=fuzz.partial_ratio,
         limit=10 
     )
     
@@ -133,36 +153,40 @@ def buscar_por_nombre(paises):
                 (p for p in paises if p['nombre'] == nombre_coincidente), 
                 None
             )
-            
             if pais_encontrado:
                  resultados.append(pais_encontrado)
 
     if not resultados:
-        console.print(f"[bold red]:x: No se encontraron coincidencias para '{nombre_buscado}' con un puntaje mínimo de {UMBRAL_PUNTAJE}.[/bold red]")
+        console.print(f"[bold red]:x: No se encontraron coincidencias para '{nombre_buscado}' (Umbral: {UMBRAL_PUNTAJE}).[/bold red]")
         return
         
     mostrar_paises(resultados)
 
 def validar_entero(mensaje):
+    limpiar_consola()
+
     while True:
         try:
-            valor_str = input(mensaje).strip()
+            console.print(f"[bold yellow]{mensaje}[/bold yellow] ", end="")
+            valor_str = input().strip()
             
             if not valor_str:
-                console.print("[bold red]Error: El valor no puede estar vacío. Vuelva a intentar.[/bold red]")
+                console.print("[bold red]Error: El valor no puede estar vacío.[/bold red]")
                 continue
             
             return int(valor_str)
         
         except ValueError:
             console.print("[bold red]Error: Por favor, ingrese un número entero válido.[/bold red]")
-            
         except (EOFError, KeyboardInterrupt):
-            console.print("\n[bold yellow]Operación cancelada. Regresando al menú principal.[/bold yellow]")
+            console.print("\n[bold yellow]Operación cancelada.[/bold yellow]")
             return None
 
 def filtrar_por_continente(paises):
-    continente_buscado = input("Ingrese el nombre del continente: ").strip()
+    limpiar_consola()
+
+    console.print("[bold yellow]🗺️  Ingrese el nombre del continente:[/bold yellow] ", end="")
+    continente_buscado = input().strip()
     
     if not continente_buscado:
         console.print("[bold red]Error: El nombre del continente no puede estar vacío.[/bold red]")
@@ -175,13 +199,13 @@ def filtrar_por_continente(paises):
     mostrar_paises(resultados)
 
 def filtrar_por_poblacion(paises):
-    console.print("[bold yellow]Filtro por Rango de Población:[/bold yellow]")
-    min_pob = validar_entero("Ingrese la población mínima: ")
-    
+    limpiar_consola()
+
+    console.print("\n[bold cyan]--- Filtro por Rango de Población ---[/bold cyan]")
+    min_pob = validar_entero("Ingrese la población mínima:")
     if min_pob is None: return
     
-    max_pob = validar_entero("Ingrese la población máxima: ")
-
+    max_pob = validar_entero("Ingrese la población máxima:")
     if max_pob is None: return
     
     if min_pob > max_pob:
@@ -192,13 +216,13 @@ def filtrar_por_poblacion(paises):
     mostrar_paises(resultados)
 
 def filtrar_por_superficie(paises):
-    console.print("[bold yellow]Filtro por Rango de Superficie (km²):[/bold yellow]")
-    min_sup = validar_entero("Ingrese la superficie mínima (km²): ")
-    
+    limpiar_consola()
+
+    console.print("\n[bold cyan]--- Filtro por Rango de Superficie (km²) ---[/bold cyan]")
+    min_sup = validar_entero("Ingrese la superficie mínima (km²):")
     if min_sup is None: return
     
-    max_sup = validar_entero("Ingrese la superficie máxima (km²): ")
-
+    max_sup = validar_entero("Ingrese la superficie máxima (km²):")
     if max_sup is None: return
 
     if min_sup > max_sup:
@@ -209,41 +233,91 @@ def filtrar_por_superficie(paises):
     mostrar_paises(resultados)
 
 def ordenar_paises(paises):
-    console.print("Seleccione el criterio de ordenamiento:")
-    console.print("1. Nombre")
-    console.print("2. Población")
-    console.print("3. Superficie")
-    criterio_op = input("Opción (1-3): ").strip()
-    
-    criterios = {
-        '1': 'nombre',
-        '2': 'poblacion',
-        '3': 'superficie'
-    }
-    
-    if criterio_op not in criterios:
-        console.print("[bold red]Error: Opción inválida.[/bold red]")
-        return
+    limpiar_consola()
 
-    criterio = criterios[criterio_op]
+    console.print("\n[bold cyan]--- Criterios de Ordenamiento ---[/bold cyan]")
+    console.print("1. Nombre")
+    console.print("2. Continente")
+    console.print("3. Población")
+    console.print("4. Superficie")
     
-    orden = input("Seleccione el orden (ASC / DESC): ").upper().strip()
-    if orden not in ['ASC', 'DESC']:
-        console.print("[bold yellow]Advertencia: Orden inválido. Se usará ASC por defecto.[/bold yellow]")
-        orden = 'ASC'
-        
-    descendente = (orden == 'DESC')
+    criterio = input("Ingrese el número del criterio (1-4): ").strip()
     
-    if criterio == 'nombre':
-        key_sort = lambda pais: pais[criterio].lower()
+    if criterio not in ['1', '2', '3', '4']:
+        console.print("[bold red]Opción de criterio inválida. Abortando.[/bold red]")
+        return 
+
+    console.print("\n[bold cyan]--- Tipo de Orden ---[/bold cyan]")
+    orden = input("Ascendente (A) o Descendente (D): ").upper().strip()
+    
+    if orden == 'D':
+        orden_descendente = True
+    elif orden == 'A':
+        orden_descendente = False
     else:
-        key_sort = lambda pais: pais[criterio]
+        console.print("[bold yellow]Opción de orden inválida. Usando Ascendente por defecto.[/bold yellow]")
+        orden_descendente = False 
+    
+    paises_ordenados = []
+
+    if criterio == '1': # Por Nombre
+        paises_ordenados = sorted(paises, key=lambda p: p['nombre'], reverse=orden_descendente)
+    elif criterio == '2': # Por Continente (y luego nombre)
+        paises_ordenados = sorted(paises, key=lambda p: (p['continente'], p['nombre']), reverse=orden_descendente) 
+    elif criterio == '3': # Por Población
+        paises_ordenados = sorted(paises, key=lambda p: p['poblacion'], reverse=orden_descendente)
+    elif criterio == '4': # Por Superficie
+        paises_ordenados = sorted(paises, key=lambda p: p['superficie'], reverse=orden_descendente)
+    
+    if not paises_ordenados:
+        console.print("[bold red]No hay países para mostrar después del ordenamiento.[/bold red]")
+        return
         
-    resultados_ordenados = sorted(paises, key=key_sort, reverse=descendente)
-    console.print(f"\n[bold magenta]Ordenado por {criterio.capitalize()} ({orden})[/bold magenta]")
-    mostrar_paises(resultados_ordenados)
+    total_paises = len(paises_ordenados)
+    total_paginas = math.ceil(total_paises / TAMANO_PAGINA)
+    pagina_actual = 1
+    
+    while True:
+        inicio = (pagina_actual - 1) * TAMANO_PAGINA
+        fin = inicio + TAMANO_PAGINA
+        
+        paises_pagina = paises_ordenados[inicio:fin]
+
+        mostrar_paises(paises_pagina, pagina_actual=pagina_actual, total_paginas=total_paginas)
+        
+        console.print("\n[bold]Opciones de Paginación:[/bold]")
+        opciones_nav = []
+        if pagina_actual > 1:
+            opciones_nav.append("[bold green](A)Anterior[/bold green]")
+        if pagina_actual < total_paginas:
+            opciones_nav.append("[bold green](S)Siguiente[/bold green]")
+        opciones_nav.append("[bold red](V)Volver al menú principal[/bold red]")
+        
+        console.print(" | ".join(opciones_nav))
+        
+        opcion_nav = input("Ingrese opción (A/S/V): ").upper().strip()
+        
+        if opcion_nav == 'V':
+            break 
+        
+        elif opcion_nav == 'A':
+            if pagina_actual > 1:
+                pagina_actual -= 1
+            else:
+                console.print("[bold yellow]Ya estás en la primera página.[/bold yellow]")
+
+        elif opcion_nav == 'S':
+            if pagina_actual < total_paginas:
+                pagina_actual += 1
+            else:
+                console.print("[bold yellow]Ya estás en la última página.[/bold yellow]")
+                
+        else:
+            console.print("[bold red]Opción de navegación inválida. Intente A, S o V.[/bold red]")
 
 def mostrar_estadisticas(paises):
+    limpiar_consola()
+
     if not paises:
         console.print("[bold red]No hay datos para calcular estadísticas.[/bold red]")
         return
@@ -271,11 +345,13 @@ def mostrar_estadisticas(paises):
         console.print(f"- {continente}: [magenta]{cantidad} países[/magenta]")
 
 def mostrar_menu():
-    console.print("\n[bold blue]🌐--- Gestión de Datos de Países ---🌐[/bold blue]")
-    console.print("1. [bold gray]🔍 --- Buscar país por nombre --- 🔍[/bold gray]")
-    console.print("2. [bold cyan]🌎 --- Filtrar por continente --- 🌍[/bold cyan]")
-    console.print("3. [bold yellow]👨 --- Filtrar por rango de población --- 👩[/bold yellow]")
-    console.print("4. [bold green]🌲 --- Filtrar por rango de superficie --- 🌲[/bold green]")
-    console.print("5. [bold magenta] :up_arrow: --- Ordenar países --- :down_arrow:[/bold magenta]")
-    console.print("6. [bold white]📊 --- Mostrar estadísticas --- 📊[/bold white]")
-    console.print("0. [bold red] 👋 --- Salir ---👋[/bold red]")
+    limpiar_consola()
+
+    console.print("\n [bold blue] 🌐 ------ Gestión de Datos de Países ------ 🌐    [/bold blue]")
+    console.print("1. [bold gray]  🔍 --- Buscar país por nombre --- 🔍          [/bold gray]")
+    console.print("2. [bold cyan]  🌎 --- Filtrar por continente --- 🌍          [/bold cyan]")
+    console.print("3. [bold yellow]  👨 --- Filtrar por rango de población --- 👩[/bold yellow]")
+    console.print("4. [bold green]  🌲 --- Filtrar por rango de superficie --- 🌲 [/bold green]")
+    console.print("5. [bold magenta]  📉 --- Ordenar países --- 📈               [/bold magenta]")
+    console.print("6. [bold white]  📊 --- Mostrar estadísticas --- 📊           [/bold white]")
+    console.print("0. [bold red]          👋 --- Salir ---👋                     [/bold red]")
