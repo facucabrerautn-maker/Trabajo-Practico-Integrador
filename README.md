@@ -1,125 +1,52 @@
-🌎 Trabajo Integrador: Explorador Global de Países
-
-💻 Programación 1 - UTN (Tecnicatura Universitaria en Programación)
-
-Este repositorio alberga el proyecto final del Trabajo Integrador de la materia Programación 1, desarrollado bajo la guía del profesor Ariel Enferrel.
-
-👤 Información del Alumno
-
-Criterio
-
-Detalle
-
-Alumno
-
-Facundo Cabrera
-
-Comisión
-
-M2025-2
-
-📂 Detalles del Repositorio
-
-Este repositorio ha sido creado para almacenar todos los archivos generados a partir de las consignas del Trabajo Integrador. El objetivo principal es desarrollar un código:
-
-✅ Limpio y estructurado
-
-💡 Interactivo y navegable
-
-🎨 Bonito (con formato en consola)
-
-🚀 Completamente ejecutable
-
-💠 Descripción del Trabajo
-
-El programa es un Explorador Geográfico interactivo desarrollado en Python (o el lenguaje de implementación). Utiliza una base de datos de países almacenada en un archivo de texto plano (.csv) y ofrece un completo menú de navegación para que el usuario pueda consultar y analizar la información global.
-
-El programa busca ofrecer datos sobre los 250 países del mundo (Superficie, Población, Continente) y sus estadísticas asociadas.
-
-⚙️ Funcionalidades Principales
-
-El menú interactivo permite al usuario navegar entre las siguientes 6 opciones:
-
-1. 🔍 Buscar un País por Nombre
-
-Permite encontrar países que coincidan parcial o totalmente con un término de búsqueda ingresado por el usuario.
-
-2. 🌍 Filtrar Países (Sub-menú)
-
-Un sub-menú para refinar la lista de países basado en criterios específicos:
-
-Por Continente
-
-Por Rango de Población (Mínimo y Máximo)
-
-Por Rango de Superficie (Mínimo y Máximo en km²)
-
-3. 📉 Ordenar Países (Sub-menú)
-
-Un sub-menú para clasificar la lista de países por un criterio y un orden definidos:
-
-Criterio: Nombre, Continente, Población o Superficie.
-
-Orden: Ascendente (A) o Descendente (D).
-
-4. 📊 Mostrar Estadísticas
-
-Calcula y presenta información resumida sobre el conjunto de datos, incluyendo:
-
-País con Mayor y Menor Población
-
-Promedio de Población (Total / Número de Países)
-
-Promedio de Superficie (Total / Número de Países)
-
-Cantidad de Países por Continente
-
-5. 👋 Salir
-
-🧭 Ejemplo de Interacción (Ordenamiento)
-
-La interacción del usuario en el programa se realiza a través de la consola:
-
-Menú Principal
-
-Elige una opción:
- 🔍 --- Buscar un país por nombre --- 🔍
- 🌎 --- Filtrar por continente --- 🌍️
- 👨 --- Filtrar por rango de población --- 👩
- 🌲 --- Filtrar por rango de superficie --- 🌲
- 📉 --- Ordenar países --- 📈
- 📊 --- Mostrar estadísticas --- 📊
- 👋 --- Salir ---👋
+# 💻 Programación 1
+#### 👤 Alumno: Facundo Cabrera
+**Tecnicatura Universitaria en Programación con Ariel Enferrel**  
+📍 *Universidad Tecnológica Nacional*
 
 
-Sub-menú de Ordenamiento
+## 📂 Detalle del Repositorio  
+- Este repositorio ha sido creado para almacenar todos los archivos creados a partir de las consignas del Trabajo Integrador de **Programación 1**.
+- En este mismo, se busca crear un codigo limpio, interactivo, bonito y sobre todo ejecutable.
 
-Suponiendo que el usuario elige: 📉 --- Ordenar países --- 📈
+📌**Descripcion del trabajo:**
+El programa utiliza una base de datos de paises almacenada en un archivo (.csv) y a través de un menú interactivo se presentan diversas funcionalidades al usuario:
+- Buscar un país por nombre (Pudiendo coincidir parcial o totalmente).  
+- Filtrar países(Por continente, rango de población o rango de superficie).
+- Ordenar países (Por Nombre, población, superficie).
+- Mostrar diferentes estadísticas:
+  - País con mayor y menor población
+  - Promedio de población
+  - Promedio de superficie
+  - Cantidad de países por continente
+                                    
+💠 Este programa le permite al usuario navegar entre 6 diferentes opciones donde va a poder elegir y consultar sobre nuestro planeta,los continentes,paises,superficie(km²) y tambien la poblacion de estos mismos, en este menu va a poder averiguar todos los datos sobre los 250 paises que existen en el mundo y sus estadisticas. El menu tiene a su vez algunos sub-menus para opciones como "Filtrar por continente","por rango de poblacion","por rango de superficie" y tambien "Ordenar paises".
 
-El programa preguntará el criterio por el cual quiere ordenar:
-  1. Nombre
-  2. Continente
-  3. Población
-  4. Superficie
-Ingrese el número del criterio (1-4): [El usuario ingresa '1']
-
-
-Selección del Orden
-
-Ascendente (A) o Descendente (D): [El usuario ingresa 'A']
-
-
-Resultado: Tabla Paginada
-
-Si el usuario elige Ascendente, el programa mostrará una tabla con formato y colores con una paginación de 10 países por página.
-
-El usuario podrá:
-
-Navegar entre las páginas (Anterior/Siguiente).
-
-Volver al menú principal en cualquier momento, restableciendo la vista sin historial de navegación.
-
-🛠️ Requisitos para Ejecutar
-
-El programa requiere la existencia del archivo de datos (paises.csv) en el mismo directorio de ejecución.
-                                 
+💠 A continuacion, se graficara un ejemplo para entender el funcionamiento de las opciones:
+```
+Elige una opción:    🔍 --- Buscar un país por nombre --- 🔍
+                     🌎 --- Filtrar por continente --- 🌍️
+                     👨 --- Filtrar por rango de población --- 👩 
+                     🌲 --- Filtrar por rango de superficie --- 🌲
+                     📉 --- Ordenar países --- 📈
+                     📊 --- Mostrar estadísticas --- 📊
+                     👋 --- Salir ---👋
+```
+```
+Suponiendo que el usuario elije : 📉 --- Ordenar países --- 📈
+```
+```
+El programa preguntara el criterio por el cual quiere ordenar:    1. Nombre
+                                                                  2. Continente
+                                                                  3. Población
+                                                                  4. Superficie
+                                                                  Ingrese el número del criterio (1-4):
+```
+```
+Suponiendo que el usuario elije la opcion "1.Nombre"
+El programa preguntara de que forma lo quiere ordenar/filtrar:    Ascendente (A) o Descendente (D): 
+```
+`
+El programa mostrara en pantalla mediante una tabla de colores los 250 paises en forma ascendente con una paginacion de 10 paises por pagina y ademas le dejara al usuario pasar de pagina a su gusto y volver al menu principal si asi lo desea. En caso de que el usuario decida volver al menu principal, se imprimira de nuevo sin el historial anteriormente creado por el usuario y podra navegar hasta que decida salir del mismo.
+`
+## 📎 Enlace al video
+[Video TPI](URL)
