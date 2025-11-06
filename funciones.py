@@ -24,11 +24,15 @@ MAPEO_CONTINENTES = {
     'N/A': 'Sin Continente'
 }
 
+## Esta funcion limpia la pantalla de la consola.
+
 def limpiar_consola():
     if os.name == 'posix':
         os.system('clear')
     elif os.name == 'nt':
         os.system('cls')
+
+## Esta funcion pausa la ejecución, espera un 'Enter' del usuario y luego limpia la consola.Acepta un mensaje de pausa personalizado.
 
 def pausa_para_continuar(mensaje_pausa="Presione Enter para volver al menú principal..."):
     
@@ -42,6 +46,8 @@ def pausa_para_continuar(mensaje_pausa="Presione Enter para volver al menú prin
         pass
 
     limpiar_consola()
+
+## Esta funcion descarga los datos de la API, traduce nombres y continentes al español, y guarda el resultado en el archivo CSV ('paises.csv')
 
 def descargar_y_crear_csv():
     console.print("[bold blue]:cloud: Descargando datos desde la API de restcountries.com...[/bold blue]")
@@ -93,6 +99,8 @@ def descargar_y_crear_csv():
         
     return True
 
+## Carga los países desde el CSV. Si el archivo no existe, llama a la función de descarga ('descargar_y_crear_csv') primero para crearlo.
+
 def cargar_datos():
 
     if not os.path.exists(NOMBRE_ARCHIVO):
@@ -122,6 +130,8 @@ def cargar_datos():
         return []
         
     return paises
+
+## Muestra una lista de países en una tabla (rich.Table). Incluye lógica para mostrar el número de página actual si se proporciona.
 
 def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
 
@@ -153,6 +163,8 @@ def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
         console.print(f"\n[bold cyan]Página {pagina_actual} de {total_paginas}[/bold cyan] (Total: {len(lista_paises)} países en esta página)")
     else:
         console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
+
+## Pide un nombre al usuario, usa 'theFuzz' para buscar coincidencias aunque tengan errores en la ortografia y muestra los resultados. Luego pausa la consola.
 
 def buscar_por_nombre(paises):
 
@@ -192,6 +204,8 @@ def buscar_por_nombre(paises):
 
     pausa_para_continuar()
 
+## Pide un número al usuario (mostrando 'mensaje') y lo valida,asegurando que sea un entero. Maneja errores de entrada.
+
 def validar_entero(mensaje):
 
     while True:
@@ -210,6 +224,8 @@ def validar_entero(mensaje):
         except (EOFError, KeyboardInterrupt):
             console.print("\n[bold yellow]Operación cancelada.[/bold yellow]")
             return None
+
+# Pide un nombre de continente, filtra la lista (ignorando mayúsculas/minúsculas) y muestra los resultados.
 
 def filtrar_por_continente(paises):
 
@@ -234,6 +250,8 @@ def filtrar_por_continente(paises):
     mostrar_paises(resultados)
     pausa_para_continuar()
 
+# Pide una población mínima y máxima (usando 'validar_entero'),filtra la lista y muestra los resultados.
+
 def filtrar_por_poblacion(paises):
 
     console.print("\n[bold cyan]--- Filtro por Rango de Población ---[/bold cyan]")
@@ -252,6 +270,8 @@ def filtrar_por_poblacion(paises):
 
     pausa_para_continuar()
 
+# Pide una superficie mínima y máxima (usando 'validar_entero'),filtra la lista y muestra los resultados.
+
 def filtrar_por_superficie(paises):
 
     console.print("\n[bold cyan]--- Filtro por Rango de Superficie (km²) ---[/bold cyan]")
@@ -269,6 +289,8 @@ def filtrar_por_superficie(paises):
     mostrar_paises(resultados)
 
     pausa_para_continuar()
+
+# Pide un criterio y orden (A/D). Muestra la lista ordenada usando un bucle de paginación interactivo (A/S/V) que limpia la consola.
 
 def ordenar_paises(paises):
     limpiar_consola()
@@ -356,6 +378,8 @@ def ordenar_paises(paises):
         else:
             console.print("[bold red]Opción de navegación inválida. Intente A, S o V.[/bold red]")
 
+# Calcula y muestra estadísticas (país más/menos poblado, promedio,conteo por continente). Luego pausa la consola.
+
 def mostrar_estadisticas(paises):
 
     if not paises:
@@ -385,6 +409,8 @@ def mostrar_estadisticas(paises):
         console.print(f"- {continente}: [magenta]{cantidad} países[/magenta]")
 
     pausa_para_continuar()
+
+# Limpia la consola y muestra el menú principal de opciones usando un Panel y Tabla de 'rich' para centrarlo.
     
 def mostrar_menu():
     limpiar_consola()
