@@ -8,7 +8,8 @@ from funciones import (
     ordenar_paises,
     mostrar_estadisticas,
     console,
-    limpiar_consola
+    limpiar_consola,
+    pausa_para_continuar
 )
 
 def main():
@@ -45,6 +46,8 @@ def main():
         else:
             limpiar_consola()
             console.print("[bold red]Opción no válida. Intente de nuevo.[/bold red]")
+
+            pausa_para_continuar()
 
 if __name__ == "__main__":
     main()

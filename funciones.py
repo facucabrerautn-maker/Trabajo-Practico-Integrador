@@ -19,7 +19,7 @@ MAPEO_CONTINENTES = {
     'Africa': 'Africa',
     'Oceania': 'Oceania',
     'Antarctic': 'Antartida',
-    '': 'Sin Continente', # Para manejar datos vacíos
+    '': 'Sin Continente',
     'N/A': 'Sin Continente'
 }
 
@@ -29,8 +29,9 @@ def limpiar_consola():
     elif os.name == 'nt':
         os.system('cls')
 
-def pausa_para_continuar():
-    console.print("\n[bold magenta]Presione Enter para volver al menú principal...[/bold magenta]", end="")
+def pausa_para_continuar(mensaje_pausa="Presione Enter para volver al menú principal..."):
+    
+    console.print(f"\n[bold magenta]{mensaje_pausa}[/bold magenta]", end="")
     
     console.file.flush()
     
@@ -77,6 +78,8 @@ def descargar_y_crear_csv():
             
         console.print(f"[bold green]:white_check_mark: Archivo '{NOMBRE_ARCHIVO}' creado exitosamente con {filas_escritas} países.[/bold green]")
         
+        console.file.flush()
+    
     except requests.exceptions.RequestException as e:
         console.print(f"[bold red]Error al conectar con la API: {e}[/bold red]")
         return False
@@ -95,6 +98,8 @@ def cargar_datos():
         console.print(f"[bold yellow]El archivo '{NOMBRE_ARCHIVO}' no existe. Iniciando descarga.[/bold yellow]")
         if not descargar_y_crear_csv():
             return []
+
+        pausa_para_continuar("¡Datos descargados y traducidos! Presione Enter para ir al menú...")
 
     paises = []
     try:
@@ -116,8 +121,6 @@ def cargar_datos():
         return []
         
     return paises
-
-    pausa_para_continuar()
 
 def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
 
@@ -149,9 +152,6 @@ def mostrar_paises(lista_paises, pagina_actual=None, total_paginas=None):
         console.print(f"\n[bold cyan]Página {pagina_actual} de {total_paginas}[/bold cyan] (Total: {len(lista_paises)} países en esta página)")
     else:
         console.print(f"\n[bold magenta]Total: {len(lista_paises)} países.[/bold magenta]")
-
-    pausa_para_continuar()
-    console.file.flush()
 
 def buscar_por_nombre(paises):
 
@@ -210,8 +210,6 @@ def validar_entero(mensaje):
             console.print("\n[bold yellow]Operación cancelada.[/bold yellow]")
             return None
 
-    pausa_para_continuar()
-
 def filtrar_por_continente(paises):
 
     console.print("[bold yellow]🗺️  Ingrese el nombre del continente:[/bold yellow] ", end="")
@@ -219,14 +217,20 @@ def filtrar_por_continente(paises):
     
     if not continente_buscado:
         console.print("[bold red]Error: El nombre del continente no puede estar vacío.[/bold red]")
+        pausa_para_continuar() 
         return
     
     continentes_disponibles = sorted(list(set(p['continente'] for p in paises)))
     console.print(f"[bold magenta]Continentes disponibles:[/bold magenta] {', '.join(c for c in continentes_disponibles)}")
+    
+    continente_buscado_lower = continente_buscado.lower()
+    
+    resultados = [
+        pais for pais in paises 
+        if continente_buscado_lower == pais['continente'].lower()
+    ]
 
-    resultados = [pais for pais in paises if continente_buscado.lower() == pais['continente'].lower()]
     mostrar_paises(resultados)
-
     pausa_para_continuar()
 
 def filtrar_por_poblacion(paises):
@@ -331,17 +335,20 @@ def ordenar_paises(paises):
         opcion_nav = input("Ingrese opción (A/S/V): ").upper().strip()
         
         if opcion_nav == 'V':
+            limpiar_consola()
             break 
         
         elif opcion_nav == 'A':
             if pagina_actual > 1:
                 pagina_actual -= 1
+                limpiar_consola()
             else:
                 console.print("[bold yellow]Ya estás en la primera página.[/bold yellow]")
 
         elif opcion_nav == 'S':
             if pagina_actual < total_paginas:
                 pagina_actual += 1
+                limpiar_consola()
             else:
                 console.print("[bold yellow]Ya estás en la última página.[/bold yellow]")
                 
