@@ -171,7 +171,7 @@ def buscar_por_nombre(paises):
         limit=10 
     )
     
-    UMBRAL_PUNTAJE = 85
+    UMBRAL_PUNTAJE = 80
     resultados = []
     
     for nombre_coincidente, puntaje in coincidencias_fuzz: 
