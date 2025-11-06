@@ -5,6 +5,7 @@ import sys
 import math
 from rich.console import Console
 from rich.table import Table
+from rich.panel import Panel
 from thefuzz import fuzz, process
 
 console = Console()
@@ -388,11 +389,31 @@ def mostrar_estadisticas(paises):
 def mostrar_menu():
     limpiar_consola()
 
-    console.print("\n [bold blue] 🌐 ------ Gestión de Datos de Países ------ 🌐    [/bold blue]")
-    console.print("1. [bold gray]  🔍 --- Buscar país por nombre --- 🔍          [/bold gray]")
-    console.print("2. [bold cyan]  🌎 --- Filtrar por continente --- 🌍          [/bold cyan]")
-    console.print("3. [bold yellow]  👨 --- Filtrar por rango de población --- 👩[/bold yellow]")
-    console.print("4. [bold green]  🌲 --- Filtrar por rango de superficie --- 🌲 [/bold green]")
-    console.print("5. [bold magenta]  📉 --- Ordenar países --- 📈               [/bold magenta]")
-    console.print("6. [bold white]  📊 --- Mostrar estadísticas --- 📊           [/bold white]")
-    console.print("0. [bold red]          👋 --- Salir ---👋                     [/bold red]")
+    menu_tabla = Table(
+        show_header=False, 
+        show_edge=False, 
+        box=None, # Sin bordes
+        padding=(0, 1), # Espaciado (vertical, horizontal)
+        width=50 # Ancho fijo para centrar mejor
+    )
+    
+    menu_tabla.add_column(width=4, justify="right")
+    menu_tabla.add_column()
+
+    menu_tabla.add_row("1.", "[gray]🔍 Buscar país por nombre[/gray]🔍")
+    menu_tabla.add_row("2.", "[cyan]🌎 Filtrar por continente[/cyan]🌎")
+    menu_tabla.add_row("3.", "[yellow]👨 Filtrar por rango de población[/yellow]👩")
+    menu_tabla.add_row("4.", "[green]🌲 Filtrar por rango de superficie[/green]🌲")
+    menu_tabla.add_row("5.", "[magenta]📉 Ordenar países[/magenta]📈")
+    menu_tabla.add_row("6.", "[white]📊 Mostrar estadísticas[/white]📊")
+    menu_tabla.add_row("", "") # Fila vacía como espaciador
+    menu_tabla.add_row("0.", "[bold red]👋 Salir[/bold red]👋")
+
+    console.print(
+        Panel(
+            menu_tabla,
+            title="[bold blue] 🌐 Gestión de Datos de Países (TPI) 🌐 [/bold blue]",
+            border_style="blue",
+            padding=(1, 4)
+        )
+    )

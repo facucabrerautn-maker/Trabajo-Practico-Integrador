@@ -35,7 +35,7 @@ def main():
         
         if opcion == '0':
             limpiar_consola()
-            console.print("[bold red]👋 Saliendo del programa...[/bold red]")
+            console.print("[bold red]👋 Saliendo del programa... Vuelva pronto!!! 😂[/bold red]")
             break
         
         accion = opciones.get(opcion) 
